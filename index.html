@@ -28,6 +28,7 @@
   .top{background:var(--panel);border-bottom:1px solid var(--line)}
   .top .in{max-width:1560px;margin:0 auto;padding:14px 28px;display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
   .top .school{font-size:17px;font-weight:700}
+  .top .logo{height:42px;max-width:70px;object-fit:contain;align-self:center;margin:-8px 0}
   .top .year{color:var(--ink-3)}
   .top .crumb{margin-left:auto;color:var(--ink-2);font-size:14px}
   .top .crumb button{background:none;border:0;padding:0;color:var(--navy);cursor:pointer;text-decoration:underline}
@@ -196,6 +197,7 @@
 </div>
 
 <div class="top"><div class="in">
+  <img class="logo" id="hdLogo" alt="" style="display:none">
   <span class="school" id="hdSchool">교육활동 예산 관리</span>
   <span class="year" id="hdYear"></span>
   <span class="year" style="font-size:12px">made by 너펑이</span>
@@ -275,6 +277,16 @@
         <div><label class="f">학년도 <span class="hint" style="margin:0;display:inline">(데이터 탭의 "새 학년도 시작"에서 바꿉니다)</span></label><input type="text" id="sYear" style="width:100%;background:var(--line-2)" readonly></div>
       </div>
       <div class="note" style="margin-top:14px">선생님들께 공유할 주소: <b id="shareUrl" style="word-break:break-all"></b> <button class="btn small" onclick="copyText($('shareUrl').textContent,'주소')">복사</button></div>
+      <h3 style="margin:22px 0 8px">학교 마크</h3>
+      <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+        <div id="sLogoBox" style="width:72px;height:72px;border:1px dashed var(--line);border-radius:10px;display:flex;align-items:center;justify-content:center;background:#fff;overflow:hidden;flex:none"><img id="sLogoPrev" alt="" style="max-width:66px;max-height:66px;display:none"><span id="sLogoNone" class="hint" style="margin:0">없음</span></div>
+        <div>
+          <input type="file" id="sLogoFile" accept="image/*" style="display:none" onchange="pickLogo(this.files[0]); this.value=''">
+          <button class="btn small" onclick="$('sLogoFile').click()">마크 올리기</button>
+          <button class="btn small" id="sLogoDel" onclick="removeLogo()" style="display:none">마크 삭제</button>
+          <div class="hint">png 또는 jpg 파일. 올리면 바로 저장되고, 화면 맨 위 학교 이름 왼쪽에 표시됩니다.</div>
+        </div>
+      </div>
       <h3 style="margin:22px 0 8px">학급 구성 (학년별 학급 수)</h3>
       <div class="grid c3" id="sClasses"></div>
       <div class="hint">0이면 해당 학년은 화면에 나타나지 않습니다.</div>
@@ -884,7 +896,7 @@ async function getBootstrap() {
   const s = await settings_();
   const depts = (await col_('부서')).sort((a, b) => num_(a.순서) - num_(b.순서));
   return {
-    학교코드: SID, 학교명: s.학교명, 학년도: YEAR, 읽기전용: READONLY, 현재학년도: s.학년도,
+    학교코드: SID, 학교명: s.학교명, 학교마크: s.학교마크 || '', 학년도: YEAR, 읽기전용: READONLY, 현재학년도: s.학년도,
     관리자설정됨: !!s.관리자비밀번호해시,
     학년비밀번호사용: s.학년비밀번호사용 === 'Y',
     grades: gradesOf_(s),
@@ -926,6 +938,18 @@ async function adminGetAll_() {
     managers: (await col_('담당자')).map(m => ({ id: m.id, 이름: m.이름, 등록일: m.등록일 })),
     phrases: adminPhrases_(await col_('문구')),
   };
+}
+/** 학교 마크(작게 줄인 그림의 data URL)를 학교 문서에 저장. 빈 문자열이면 삭제 */
+async function adminSetLogo(pw, dataUrl) {
+  await checkAdmin_(pw); guardWrite_();
+  dataUrl = String(dataUrl || '');
+  if (dataUrl) {
+    if (!/^data:image\/(png|webp|jpeg|gif);base64,[A-Za-z0-9+/=]+$/.test(dataUrl)) throw new Error('그림 파일(png, jpg)만 올릴 수 있습니다.');
+    if (dataUrl.length > 500000) throw new Error('그림이 너무 큽니다. 더 작은 파일로 올려 주세요.');
+  }
+  await FS.update(schoolPath_(), { 학교마크: dataUrl }); CACHE = {};
+  await logChange_('관리자', dataUrl ? '변경' : '삭제', '학교 마크', dataUrl ? Math.round(dataUrl.length / 1024) + 'KB' : '');
+  return publicSettings_(await settings_());
 }
 async function adminSaveSettings(pw, patch) {
   await checkAdmin_(pw); guardWrite_();
@@ -1009,7 +1033,7 @@ async function adminResetData(pw, mode) {
     await batch_(ops);
     const s = await school_();
     const salt = newId_() + newId_();
-    await FS.set(schoolPath_(), { 학교명: s.학교명, 학년도: YEAR, 관리자비밀번호해시: '', 솔트: salt, 구매처목록: '지마켓,아이스크림몰,학교장터,쿠팡', 생성일: s.생성일 || now_() });
+    await FS.set(schoolPath_(), { 학교명: s.학교명, 학교마크: s.학교마크 || '', 학년도: YEAR, 관리자비밀번호해시: '', 솔트: salt, 구매처목록: '지마켓,아이스크림몰,학교장터,쿠팡', 생성일: s.생성일 || now_() });
     await FS.set(yearPath_(), Object.assign({}, DEFAULT_YEAR_SETTINGS));
     await FS.batch(DEFAULT_PHRASES.map((p, i) => opSet_('문구', { id: newId_(), 범위: '관리자', 이름: p.이름, 본문템플릿: p.본문템플릿, 순서: i + 1 })));
     CACHE = {};
@@ -1082,7 +1106,7 @@ async function adminImport(pw, data, mode) {
     const cur = await school_();
     const src = data.school || {};
     const merged = Object.assign({}, cur);
-    ['학교명', '구매처목록', '관리자비밀번호해시', '솔트'].forEach(k => { if (src[k] !== undefined && src[k] !== '') merged[k] = src[k]; });
+    ['학교명', '구매처목록', '관리자비밀번호해시', '솔트', '학교마크'].forEach(k => { if (src[k] !== undefined && src[k] !== '') merged[k] = src[k]; });
     ops.push({ op: 'set', name: '__school', path: schoolPath_(), data: merged });
   }
   ops.push(logOp_('관리자', '가져오기', `${years.join(',')}학년도`, `${mode === 'all' ? '전체' : '예산 데이터'} ${count}건`));
@@ -1533,7 +1557,7 @@ async function getUploadHistory(auth) {
   return (await col_('업로드이력')).sort((a, b) => String(a.일시).localeCompare(String(b.일시))).slice(-20).reverse();
 }
 
-const API = { getBootstrap, verifyGradePassword, adminSetPassword, adminLogin, adminChangePassword, adminSaveSettings, adminSaveDepartments, adminRenameManager, adminResetManagerPassword,
+const API = { getBootstrap, verifyGradePassword, adminSetPassword, adminLogin, adminChangePassword, adminSetLogo, adminSaveSettings, adminSaveDepartments, adminRenameManager, adminResetManagerPassword,
   adminDeleteManager, adminSavePhrases, adminGetChangeLog, adminResetData, adminNewYear, adminArchives, adminBackup, adminImport, registerManager, loginManager, managerGetAll, managerSaveBudgets,
   managerAllocate, managerAllocateBatch, managerUpdateGroup, managerSetCollectTitle, managerFinalizeCollect, managerDeleteGroup, userGetAll, userSaveDistribution, userCreatePumui, userSavePumui,
   userSaveClassItems, userDeletePumui, edufineMatch, edufineApply, getUploadHistory, createSchool, openSchool, schoolExists };
@@ -1639,6 +1663,7 @@ async function initCore(){
   if($('sc-setup').classList.contains('on')){ $('sideBar').style.display=''; goHome(); }   // 처음 설정 직후 새로고침 없이 이어질 때
   boot = await call('getBootstrap');
   $('hdSchool').textContent = (boot.학교명 ? boot.학교명 + ' ' : '') + '예산 관리';
+  $('hdLogo').src = boot.학교마크 || ''; $('hdLogo').style.display = boot.학교마크 ? 'block' : 'none';
   $('hdYear').textContent = boot.학년도 ? boot.학년도+'학년도' : '';
   $('roBanner').style.display = boot.읽기전용 ? 'block' : 'none';
   if(boot.읽기전용) $('roBanner').innerHTML = `${boot.학년도}학년도 자료를 <b>읽기 전용</b>으로 보고 있습니다. 저장은 되지 않습니다. <a href="${shareUrl()}">현재 학년도(${boot.현재학년도})로 돌아가기</a>`;
@@ -2708,7 +2733,7 @@ async function openAdmin(){
 }
 function renderAdmin(){
   const s = admin.settings;
-  $('sSchool').value = s.학교명||''; $('sYear').value = s.학년도||''; $('shareUrl').textContent = shareUrl();
+  $('sSchool').value = s.학교명||''; $('sYear').value = s.학년도||''; $('shareUrl').textContent = shareUrl(); setLogoUI(s.학교마크||'');
   $('sClasses').innerHTML = [1,2,3,4,5,6].map(g=>`<div><label class="f">${g}학년</label><input type="number" min="0" max="20" id="sc_${g}" value="${s['학급수_'+g]||0}" style="width:100%"></div>`).join('');
   $('sUsePw').checked = s.학년비밀번호사용==='Y';
   $('sPwBox').innerHTML = [1,2,3,4,5,6,'전담'].map(g=>`<div><label class="f">${g==='전담'?'전담':g+'학년'}</label><input type="text" id="spw_${g}" value="${esc(s['학년비밀번호_'+g]||'')}" style="width:100%" placeholder="비우면 통과"></div>`).join('');
@@ -2726,6 +2751,43 @@ function addVendor(){ const v=$('vNew').value.trim(); if(!v) return; if(vendorDr
 async function saveVendors(){ admin.settings = await call('adminSaveSettings', adminPw, {구매처목록: vendorDraft.join(',')}); toast('구매처 목록을 저장했습니다'); }
 function togglePwBox(){ $('sPwBox').style.display = $('sUsePw').checked ? 'grid' : 'none'; }
 
+// ── 학교 마크
+function setLogoUI(src){
+  const has = !!src;
+  $('sLogoPrev').src = src||''; $('sLogoPrev').style.display = has?'block':'none'; $('sLogoNone').style.display = has?'none':'inline'; $('sLogoDel').style.display = has?'inline-block':'none';
+  $('hdLogo').src = src||''; $('hdLogo').style.display = has?'block':'none';
+}
+function shrinkImage(file, max){
+  return new Promise((res, rej)=>{
+    const url = URL.createObjectURL(file); const img = new Image();
+    img.onload = ()=>{
+      URL.revokeObjectURL(url);
+      const sc = Math.min(1, max/Math.max(img.naturalWidth||1, img.naturalHeight||1));
+      const w = Math.max(1, Math.round((img.naturalWidth||1)*sc)), h = Math.max(1, Math.round((img.naturalHeight||1)*sc));
+      const c = document.createElement('canvas'); c.width=w; c.height=h;
+      c.getContext('2d').drawImage(img, 0, 0, w, h);
+      let out = c.toDataURL('image/webp', 0.9);
+      if(!/^data:image\/webp/.test(out)) out = c.toDataURL('image/png');
+      if(out.length > 450000) out = c.toDataURL('image/jpeg', 0.85);
+      res(out);
+    };
+    img.onerror = ()=>{ URL.revokeObjectURL(url); rej(new Error('decode')); };
+    img.src = url;
+  });
+}
+async function pickLogo(file){
+  if(!file) return;
+  if(!/^image\//.test(file.type)) return toast('그림 파일(png, jpg)을 골라 주세요', true);
+  let dataUrl;
+  try{ dataUrl = await shrinkImage(file, 192); }catch(e){ return toast('그림을 읽지 못했습니다. 다른 파일로 해 보세요', true); }
+  admin.settings = await call('adminSetLogo', adminPw, dataUrl);
+  setLogoUI(dataUrl); toast('학교 마크를 저장했습니다');
+}
+async function removeLogo(){
+  if(!confirm('학교 마크를 지울까요?')) return;
+  admin.settings = await call('adminSetLogo', adminPw, '');
+  setLogoUI(''); toast('학교 마크를 지웠습니다');
+}
 async function saveSchool(){
   const patch = { 학교명:$('sSchool').value.trim(), 학년도:$('sYear').value.trim(), 학년비밀번호사용: $('sUsePw').checked?'Y':'N' };
   [1,2,3,4,5,6].forEach(g=>patch['학급수_'+g]=$('sc_'+g).value);
