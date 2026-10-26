@@ -198,7 +198,6 @@
 <div class="top"><div class="in">
   <span class="school" id="hdSchool">교육활동 예산 관리</span>
   <span class="year" id="hdYear"></span>
-  <span class="year" id="hdCode" style="font-size:12px"></span>
   <span class="year" style="font-size:12px">made by 너펑이</span>
   <span class="crumb" id="hdCrumb"></span>
 </div></div>
@@ -224,24 +223,18 @@
 </aside>
 <div class="wrap">
 
-  <!-- ───────── 학교 선택 / 만들기 (주소에 학교 코드가 없을 때) ───────── -->
-  <section class="screen" id="sc-school">
-    <div class="panel" style="max-width:640px">
-      <h2>교육활동 예산 관리</h2>
-      <p style="color:var(--ink-2);margin:6px 0 0">학교마다 고유한 <b>학교 코드</b>로 구분됩니다. 안내받은 주소(…?school=코드)로 접속하면 이 화면은 나오지 않습니다.</p>
-      <div class="sect"><h3>우리 학교 열기</h3>
-        <div style="display:flex;gap:8px;flex-wrap:wrap"><input type="text" id="scCode" placeholder="학교 코드 (예: hwaseong-bareun)" style="flex:1;min-width:220px" onkeydown="if(event.key==='Enter')goSchool()"><button class="btn primary" onclick="goSchool()">열기</button></div>
-        <div class="hint" id="scLast"></div></div>
-      <div class="sect" style="border-top:1px solid var(--line-2);padding-top:16px"><h3>우리 학교 처음 만들기</h3>
-        <div class="hint">관리자(프로그램 담당 선생님)가 한 번만 합니다. 만든 뒤 주소를 선생님들께 공유하세요.</div>
-        <div class="grid c2" style="margin-top:10px">
-          <div><label class="f">학교 코드 <span class="hint" style="margin:0;display:inline">영문 소문자·숫자·하이픈 3~30자</span></label><input type="text" id="scNewCode" style="width:100%" placeholder="예: hwaseong-bareun"></div>
-          <div><label class="f">학교 이름</label><input type="text" id="scNewName" style="width:100%" placeholder="예: 화성바른초등학교"></div>
-          <div><label class="f">관리자 비밀번호 (4자 이상)</label><input type="password" id="scNewPw" style="width:100%"></div>
-          <div><label class="f">관리자 비밀번호 확인</label><input type="password" id="scNewPw2" style="width:100%"></div>
-          <div><label class="f">학년도</label><input type="text" id="scNewYear" style="width:100%"></div>
-        </div>
-        <div class="actions"><button class="btn primary" onclick="createSchoolUI()">학교 만들기</button></div></div>
+  <!-- ───────── 처음 설정 (아직 학교 자료가 없을 때 한 번) ───────── -->
+  <section class="screen" id="sc-setup">
+    <div class="panel" style="max-width:560px">
+      <h2>교육활동 예산 관리 — 처음 설정</h2>
+      <p style="color:var(--ink-2);margin:6px 0 0">이 프로그램을 처음 여는 것입니다. 관리자(담당 선생님)가 아래를 한 번만 입력하면 바로 시작됩니다. 다른 선생님들은 이 화면을 보지 않습니다.</p>
+      <div class="grid c2" style="margin-top:16px">
+        <div><label class="f">학교 이름</label><input type="text" id="scNewName" style="width:100%" placeholder="예: 화성바른초등학교"></div>
+        <div><label class="f">학년도</label><input type="text" id="scNewYear" style="width:100%"></div>
+        <div><label class="f">관리자 비밀번호 (4자 이상)</label><input type="password" id="scNewPw" style="width:100%"></div>
+        <div><label class="f">관리자 비밀번호 확인</label><input type="password" id="scNewPw2" style="width:100%" onkeydown="if(event.key==='Enter')setupSchoolUI()"></div>
+      </div>
+      <div class="actions"><button class="btn primary" onclick="setupSchoolUI()">시작하기</button></div>
     </div>
   </section>
 
@@ -376,7 +369,7 @@
         <button class="btn" onclick="resetData('data')">예산 데이터 초기화</button>
         <button class="btn text danger" onclick="resetData('all')">전체 초기화 (처음 설치 상태로)</button>
       </div>
-      <div class="hint">예산 데이터 초기화: 현재 학년도의 예산·배부·품의를 지우고 학교 설정·부서·담당자·기본 문구는 남깁니다.<br>전체 초기화: 관리자 비밀번호·담당자·부서까지 모두 지웁니다(학교 코드와 이름은 유지). 다음 접속 때 관리자 비밀번호를 새로 정합니다.</div>
+      <div class="hint">예산 데이터 초기화: 현재 학년도의 예산·배부·품의를 지우고 학교 설정·부서·담당자·기본 문구는 남깁니다.<br>전체 초기화: 관리자 비밀번호·담당자·부서까지 모두 지웁니다(학교 이름은 유지). 다음 접속 때 관리자 비밀번호를 새로 정합니다.</div>
 
       <h3 style="margin-top:26px">에듀파인 품의목록 반영</h3>
       <div id="edu_a" style="margin-top:8px"></div>
@@ -802,7 +795,7 @@ const opDel_ = (name, id) => ({ op: 'del', name, path: docPath_(name, id) });
 async function school_() { if (!CACHE.__school) { CACHE.__school = await FS.get(schoolPath_()); } return CACHE.__school ? Object.assign({}, CACHE.__school) : null; }
 async function yearDoc_() { if (!CACHE.__year) { CACHE.__year = (await FS.get(yearPath_())) || {}; } return Object.assign({}, DEFAULT_YEAR_SETTINGS, CACHE.__year); }
 /** 학교 설정 + 학년도 설정을 합친 것 (Code.gs의 readSettings_와 같은 모양) */
-async function settings_() { const s = await school_(); if (!s) throw new Error('학교 자료가 없습니다. 주소의 학교 코드를 확인하세요.'); return Object.assign({}, s, await yearDoc_(), { 학년도: YEAR }); }
+async function settings_() { const s = await school_(); if (!s) throw new Error('학교 자료를 찾을 수 없습니다. 화면을 새로고침해 주세요.'); return Object.assign({}, s, await yearDoc_(), { 학년도: YEAR }); }
 function publicSettings_(s) { const out = {}; Object.keys(s).forEach(k => { if (k !== '솔트' && k !== '관리자비밀번호해시') out[k] = s[k]; }); return out; }
 
 async function hash_(pw) {
@@ -878,7 +871,7 @@ async function openSchool(code, viewYear) {
   CACHE = {};
   SID = String(code || '').trim().toLowerCase();
   const s = await FS.get(schoolPath_());
-  if (!s) throw new Error(`'${SID}' 학교를 찾을 수 없습니다. 주소의 학교 코드를 확인하거나 새 학교를 만드세요.`);
+  if (!s) throw new Error('학교 자료를 찾을 수 없습니다. 화면을 새로고침해 주세요.');
   YEAR = String(s.학년도);
   READONLY = false;
   if (viewYear && String(viewYear) !== YEAR) { YEAR = String(viewYear); READONLY = true; }
@@ -1571,7 +1564,9 @@ async function call(fn, ...args){
   finally { busy(false); }
 }
 function downloadJson(obj, name){ const blob=new Blob([JSON.stringify(obj,null,1)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name; document.body.appendChild(a); a.click(); setTimeout(()=>{URL.revokeObjectURL(a.href); a.remove();},500); }
-function shareUrl(){ return location.origin + location.pathname + '?school=' + SID; }
+const DEFAULT_SCHOOL = (typeof SCHOOL_CODE!=='undefined' && SCHOOL_CODE) ? String(SCHOOL_CODE).toLowerCase() : 'school';
+function shareUrl(){ return location.origin + location.pathname + (SID && SID!==DEFAULT_SCHOOL ? '?school=' + SID : ''); }
+function yearUrl(y){ const u=shareUrl(); return u + (u.indexOf('?')>=0 ? '&' : '?') + 'year=' + y; }
 let lastScreen=null;
 function goHome(){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));
@@ -1637,15 +1632,14 @@ async function initCore(){
     FS = fsFirebase(firebase.firestore());
   }
   const params = new URLSearchParams(location.search);
-  const code = (params.get('school')||'').trim().toLowerCase();
+  const code = (params.get('school')||'').trim().toLowerCase() || DEFAULT_SCHOOL;   // 보통은 고정 코드. ?school= 은 나중에 여러 학교를 한곳에서 쓸 때만
   const viewYear = (params.get('year')||'').trim();
-  if(!code){ showSchoolScreen(); return; }
+  if(!(await API.schoolExists(code))){ SETUP_CODE = code; showSetupScreen(); return; }
   await API.openSchool(code, viewYear);
-  try{ localStorage.setItem('yesan_last_school', code); }catch(e){}
+  if($('sc-setup').classList.contains('on')){ $('sideBar').style.display=''; goHome(); }   // 처음 설정 직후 새로고침 없이 이어질 때
   boot = await call('getBootstrap');
   $('hdSchool').textContent = (boot.학교명 ? boot.학교명 + ' ' : '') + '예산 관리';
   $('hdYear').textContent = boot.학년도 ? boot.학년도+'학년도' : '';
-  $('hdCode').textContent = '학교 코드: ' + boot.학교코드;
   $('roBanner').style.display = boot.읽기전용 ? 'block' : 'none';
   if(boot.읽기전용) $('roBanner').innerHTML = `${boot.학년도}학년도 자료를 <b>읽기 전용</b>으로 보고 있습니다. 저장은 되지 않습니다. <a href="${shareUrl()}">현재 학년도(${boot.현재학년도})로 돌아가기</a>`;
   // 담당자
@@ -1659,23 +1653,21 @@ async function initCore(){
   else $('userHint').innerHTML = '';
   if(!init._restored){ init._restored=true; try{ await restoreSession(); } finally { $('boot').style.display='none'; } }
 }
-// ───────── 학교 선택 / 만들기 ─────────
-function showSchoolScreen(){
+// ───────── 처음 설정 ─────────
+let SETUP_CODE = DEFAULT_SCHOOL;
+function showSetupScreen(){
   $('sideBar').style.display='none';
-  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on')); $('sc-school').classList.add('on');
-  let last=''; try{ last=localStorage.getItem('yesan_last_school')||''; }catch(e){}
-  if(last){ $('scCode').value=last; $('scLast').innerHTML=`최근에 연 학교: <a href="?school=${esc(last)}">${esc(last)}</a>`; }
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on')); $('sc-setup').classList.add('on');
   $('scNewYear').value = String(new Date().getFullYear());
   $('boot').style.display='none';
 }
-function goSchool(){ const c=$('scCode').value.trim().toLowerCase(); if(!c) return toast('학교 코드를 입력하세요', true); location.search='?school='+encodeURIComponent(c); }
-async function createSchoolUI(){
-  const code=$('scNewCode').value.trim().toLowerCase(), name=$('scNewName').value.trim(), pw=$('scNewPw').value, pw2=$('scNewPw2').value, year=$('scNewYear').value.trim();
+async function setupSchoolUI(){
+  const name=$('scNewName').value.trim(), pw=$('scNewPw').value, pw2=$('scNewPw2').value, year=$('scNewYear').value.trim();
   if(pw!==pw2) return toast('비밀번호 확인이 일치하지 않습니다', true);
   if(!/^\d{4}$/.test(year)) return toast('학년도는 4자리 연도로 입력하세요', true);
-  try{ await call('createSchool', code, name, pw, year); }catch(e){ return; }
-  toast('학교를 만들었습니다. 잠시 후 이동합니다.');
-  setTimeout(()=>{ location.search='?school='+encodeURIComponent(code); }, 800);
+  try{ await call('createSchool', SETUP_CODE, name, pw, year); }catch(e){ return; }
+  toast('설정을 마쳤습니다. 잠시 후 시작합니다.');
+  setTimeout(()=>{ location.href = location.pathname + (SETUP_CODE!==DEFAULT_SCHOOL ? '?school='+SETUP_CODE : ''); }, 800);
 }
 async function restoreSession(){
   const ss = sessLoad(); if(!ss) return;
@@ -2829,7 +2821,7 @@ async function newYear(){
 }
 async function loadArchives(){
   const r=await call('adminArchives', adminPw);
-  $('arcList').innerHTML = `<div class="hint" style="margin-bottom:4px">학년도 목록</div>` + r.years.map(y=>`<div style="font-size:14px;margin-top:4px">${y.학년도}학년도 ${y.현재?'<span class="cls-tag">현재</span>':`<a href="${shareUrl()}&year=${y.학년도}">읽기 전용으로 보기</a>`}</div>`).join('');
+  $('arcList').innerHTML = `<div class="hint" style="margin-bottom:4px">학년도 목록</div>` + r.years.map(y=>`<div style="font-size:14px;margin-top:4px">${y.학년도}학년도 ${y.현재?'<span class="cls-tag">현재</span>':`<a href="${yearUrl(y.학년도)}">읽기 전용으로 보기</a>`}</div>`).join('');
 }
 async function importData(){
   const f=$('impFile').files[0]; if(!f) return toast('가져올 JSON 파일을 선택하세요', true);
