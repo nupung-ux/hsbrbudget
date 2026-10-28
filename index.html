@@ -2,6 +2,9 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>예산 관리 프로그램</title>
+<link rel="icon" id="favicon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2324427a'/%3E%3Ctext x='32' y='45' font-size='34' font-family='sans-serif' font-weight='700' fill='%23fff' text-anchor='middle'%3E%EC%98%88%3C/text%3E%3C/svg%3E">
 <base target="_top">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -1869,6 +1872,8 @@ async function initCore(){
   boot = await call('getBootstrap');
   $('hdSchool').textContent = (boot.학교명 ? boot.학교명 + ' ' : '') + '예산 관리';
   $('hdLogo').src = boot.학교마크 || ''; $('hdLogo').style.display = boot.학교마크 ? 'block' : 'none';
+  document.title = '예산 관리 프로그램' + (boot.학교명 ? ' - ' + boot.학교명 : '') + (boot.읽기전용 ? ` (${boot.학년도}학년도 읽기 전용)` : '');
+  setFavicon(boot.학교마크);
   $('hdYear').textContent = boot.학년도 ? boot.학년도+'학년도' : '';
   $('roBanner').style.display = boot.읽기전용 ? 'block' : 'none';
   if(boot.읽기전용) $('roBanner').innerHTML = `${boot.학년도}학년도 자료를 <b>읽기 전용</b>으로 보고 있습니다. 저장은 되지 않습니다. <a href="${shareUrl()}">현재 학년도(${boot.현재학년도})로 돌아가기</a>`;
@@ -2966,6 +2971,7 @@ function setLogoUI(src){
   const has = !!src;
   $('sLogoPrev').src = src||''; $('sLogoPrev').style.display = has?'block':'none'; $('sLogoNone').style.display = has?'none':'inline'; $('sLogoDel').style.display = has?'inline-block':'none';
   $('hdLogo').src = src||''; $('hdLogo').style.display = has?'block':'none';
+  setFavicon(src);
 }
 function shrinkImage(file, max){
   return new Promise((res, rej)=>{
@@ -3120,6 +3126,10 @@ async function loadLog(){
   const list = await call('adminGetChangeLog', adminPw, 200);
   $('logTable').querySelector('tbody').innerHTML = list.map(l=>`<tr><td style="white-space:nowrap;color:var(--ink-3)">${esc(l.일시)}</td><td>${esc(l.역할)}</td><td>${esc(l.작업)}</td><td>${esc(l.대상)}</td><td>${esc(l.요약)}</td></tr>`).join('') || '<tr><td class="empty">이력이 없습니다.</td></tr>';
 }
+
+// ───────── 브라우저 탭 아이콘 ─────────
+const DEFAULT_FAVICON = document.getElementById('favicon').getAttribute('href');
+function setFavicon(src){ $('favicon').href = src || DEFAULT_FAVICON; }
 
 // ───────── 사용 설명서 서랍 ─────────
 function helpTab(t){
