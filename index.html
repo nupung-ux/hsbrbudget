@@ -71,6 +71,7 @@
     border:1px solid var(--line);border-radius:var(--r);padding:8px 10px;background:#fff;min-width:0}
   input:focus,select:focus,textarea:focus{outline:2px solid var(--navy);outline-offset:0;border-color:var(--navy)}
   textarea{width:100%;min-height:150px;resize:vertical;line-height:1.5}
+  input.title-in{border:2px solid var(--navy);padding:7px 10px}
   .btn{border:1px solid var(--line);background:#fff;border-radius:var(--r);padding:8px 14px;cursor:pointer}
   .btn:hover{background:var(--line-2)}
   .btn.primary{background:var(--navy);border-color:var(--navy);color:#fff}
@@ -729,7 +730,7 @@
         <div class="stepbox">
           <div class="steph"><span class="num">1</span><h3>품의서</h3><span class="r">제목을 저장하면 학년·전담 화면에도 같은 제목으로 보입니다. 에듀파인 원인행위액은 이 제목으로 찾아 각 학년에 품목 합계 비율로 나눠 반영됩니다.</span></div>
           <label class="f" style="font-weight:700;font-size:17px;color:var(--ink)">품의 제목 <span style="color:var(--danger)">*</span></label>
-          <div style="display:flex;gap:8px;margin-top:6px"><select id="cgTitleSel" style="width:34%;min-width:220px" title="예산 담당자 제목 양식 — {학년·학급}은 배부 대상 전체로 바뀝니다" onchange="cgTitlePick()"></select><input type="text" id="cgTitle" style="flex:1;font-size:16px" placeholder="통합 품의 제목"><button class="btn" onclick="cgSaveTitle()">제목 저장</button><button class="btn soft" onclick="copyText($('cgTitle').value,'제목')">제목 복사</button></div>
+          <div style="display:flex;gap:8px;margin-top:6px"><select id="cgTitleSel" style="width:17%;min-width:170px" title="예산 담당자 제목 양식 — {학년·학급}은 배부 대상 전체로 바뀝니다" onchange="cgTitlePick()"></select><input type="text" id="cgTitle" class="title-in" style="flex:1;font-size:16px" placeholder="통합 품의 제목"><button class="btn" onclick="cgSaveTitle()">제목 저장</button><button class="btn soft" onclick="copyText($('cgTitle').value,'제목')">제목 복사</button></div>
           <label class="f" style="font-weight:700;font-size:17px;color:var(--ink);margin-top:16px">품의 개요</label>
           <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:8px">
             <span><label class="f">품의 개요 문구 선택</label><select id="cgPhrase" style="min-width:180px" onchange="cgGen()"></select></span>
@@ -790,7 +791,7 @@
               <button class="btn text danger" id="delBtn" onclick="deletePumui()">품의 삭제</button>
               <button class="btn primary" onclick="savePumui()">저장</button></span></div>
           <div style="display:flex;gap:12px;align-items:baseline;flex-wrap:wrap"><label class="f" style="font-weight:700;font-size:17px;color:var(--ink);margin:0">품의 제목 <span style="color:var(--danger)">*</span></label><span class="hint warn" style="margin:0">에듀파인 원인행위액을 자동 반영하려면 여기 쓴 제목을 수정 후 그대로 복사해서 에듀파인에 붙여넣으세요</span></div>
-          <div style="display:flex;gap:8px;margin-top:6px"><select id="pTitleSel" style="width:34%;min-width:220px" title="예산 담당자 제공 제목 양식 — 고르면 오른쪽 제목 칸에 채워집니다" onchange="pTitlePick()"></select><input type="text" id="pTitle" style="flex:1;font-size:16px" placeholder="왼쪽 양식에서 고르면 채워집니다. 직접 고쳐도 됩니다" oninput="titleChanged()"><button class="btn soft" onclick="copyText(titleValue(),'제목')">제목 복사</button></div>
+          <div style="display:flex;gap:8px;margin-top:6px"><select id="pTitleSel" style="width:17%;min-width:170px" title="예산 담당자 제공 제목 양식 — 고르면 오른쪽 제목 칸에 채워집니다" onchange="pTitlePick()"></select><input type="text" id="pTitle" class="title-in" style="flex:1;font-size:16px" placeholder="왼쪽 양식에서 고르면 채워집니다. 직접 고쳐도 됩니다" oninput="titleChanged()"><button class="btn soft" onclick="copyText(titleValue(),'제목')">제목 복사</button></div>
 
           <label class="f" style="font-weight:700;font-size:17px;color:var(--ink);margin-top:18px">품의 개요</label>
           <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:8px">
@@ -2272,7 +2273,7 @@ function openCollect(gid){
   const curTitle=(g.취합[0]||{}).제목||'';
   const done=g.취합.length && g.취합.every(c=>c.상태==='기안완료');
   $('cgName').textContent=`${g.예산명} — ${cLabels(g)} · 품목 ${items.length}건 · 합계 ${won(total)}원`;
-  $('cgTitleSel').innerHTML=(titles.length?'<option value="">예산 담당자 제목 양식</option>':'<option value="">제공된 제목 없음</option>')+titles.map(t=>`<option value="${esc(t)}">${esc(t)}</option>`).join('');
+  $('cgTitleSel').innerHTML=(titles.length?'<option value="">제목 양식 고르기</option>':'<option value="">제공된 제목 없음</option>')+titles.map(t=>`<option value="${esc(t)}">${esc(t)}</option>`).join('');
   $('cgTitleSel').disabled=!titles.length;
   $('cgTitle').value=curTitle||(titles[0]||'');
   $('cgItems').querySelector('tbody').innerHTML=items.map(i=>`<tr><td style="white-space:nowrap">${esc(i.대상)}${i.반?` <span class="cls-tag">${i.반}반</span>`:''}</td><td>${esc(i.내용)}</td><td>${esc(i.규격)}</td><td>${esc(i.단위||'개')}</td><td class="amt" style="text-align:right">${i.수량}</td><td class="amt" style="text-align:right">${won(i.예상단가)}</td><td class="amt" style="text-align:right">${won(i.수량*i.예상단가)}</td><td>${esc(i.구매처||'')}</td><td>${i.링크?`<a href="${esc(i.링크)}" target="_blank">열기</a>`:''}</td></tr>`).join('')||'<tr><td colspan="9" class="empty">아직 담긴 물품이 없습니다.</td></tr>';
@@ -2452,7 +2453,7 @@ function renderEditor(a,p){
   $('uEditor').style.display='block';
   setEditorMode('common', p); renderCpBox(p);
   const titles = a.제목목록.map(t=>subst(t,a));
-  $('pTitleSel').innerHTML = (titles.length ? '<option value="">예산 담당자 제공 제목 양식</option>' : '<option value="">제공된 제목 없음</option>') + titles.map(t=>`<option value="${esc(t)}">${esc(t)}</option>`).join('');
+  $('pTitleSel').innerHTML = (titles.length ? '<option value="">제목 양식 고르기</option>' : '<option value="">제공된 제목 없음</option>') + titles.map(t=>`<option value="${esc(t)}">${esc(t)}</option>`).join('');
   $('pTitleSel').disabled = !titles.length;
   $('pTitleSel').value = '';
   $('pTitle').value = p.제목 || (titles.length?titles[0]:'');
