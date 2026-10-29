@@ -4,6 +4,7 @@
 
 - 프로그램 주소: https://nupung-ux.github.io/hsbrbudget/  (이 저장소 하나가 우리 학교 전용. 처음 열 때 학교 이름과 관리자 비밀번호를 한 번 정합니다)
 - 테스트 페이지: https://nupung-ux.github.io/hsbrbudget/test.html  (연습용 샘플 자료. 실제 자료와 분리되어 있고 "샘플 자료로 되돌리기"로 초기화)
+  - "나만의 연습 방 만들기"로 각자 따로 쓰는 연습 방(test-xxxx)을 만들 수 있고, `예시_품의목록.xlsx` 는 에듀파인 반영 연습용 파일입니다
 - 자료 저장: Firebase Firestore (`firebase-config.js` 의 프로젝트)
 - `index.html` 을 바꿔 올리면 1~2분 뒤 자동 반영됩니다. `firebase-config.js` 는 건드리지 않습니다.
 - `firestore.rules` 는 Firebase 콘솔 → Firestore Database → 규칙에 붙여 넣는 접근 규칙입니다.

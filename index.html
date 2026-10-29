@@ -228,8 +228,6 @@
 
 <div class="note" id="roBanner" style="display:none;margin:0;border-radius:0;text-align:center"></div>
 <div class="note" id="testBanner" style="display:none;margin:0;border-radius:0;background:#e8f5ec;border-left-color:#2f855a;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;padding:8px 14px">
-  <span>🧪 <b>테스트 페이지</b>입니다. 마음껏 눌러 보세요. 여기 입력한 내용은 실제 자료와 상관없습니다. &nbsp;관리자 비밀번호 <b>1234</b> &nbsp;|&nbsp; 예산배정 담당자 <b>김담당 / 1234</b></span>
-  <span style="display:flex;gap:8px"><button class="btn small" onclick="resetTestSchool()">샘플 자료로 되돌리기</button><a class="btn small" href="./" style="text-decoration:none">실제 프로그램으로</a></span>
 </div>
 <!-- ───────── 사용 설명서 (오른쪽 서랍) ───────── -->
 <div class="help-bg" id="helpBg" onclick="helpClose()"></div>
@@ -362,6 +360,7 @@
         <li><b>반영하기</b> → 원인행위액이 각 화면의 원인행위 칸에 들어갑니다. 사용액과 다르면 노란색으로 표시되어 비교할 수 있습니다.</li>
       </ol>
       <div class="tip">선생님들이 품의 제목을 양식 그대로 복사해서 쓰면 거의 모두 자동으로 맞춰집니다. 제목을 다르게 썼다면 한 번만 골라 주면 다음부터는 기억합니다.</div>
+      <p>테스트 페이지에는 샘플 자료에 맞춘 <b>연습용 품의목록 파일</b>이 있습니다(위쪽 초록 띠의 버튼). 매칭되는 것과 안 되는 것이 섞여 있어 반영 과정을 미리 연습해 볼 수 있습니다.</p>
       <p>위쪽 검색 칸에 제목 일부를 넣으면 긴 목록에서 빨리 찾을 수 있고, 이미 반영된 것은 표시되어 다시 고르지 않아도 됩니다.</p>
     </section>
 
@@ -1073,10 +1072,11 @@ function cleanItems_(items, extra) {
 
 // ───────── 학교 만들기 / 열기 ─────────
 const SCHOOL_CODE_RE = /^[a-z0-9][a-z0-9-]{2,29}$/;
-const TEST_SCHOOL = 'test';   // 연습용 학교 코드 (?school=test). 실제 자료와 완전히 분리된 문서 트리
+const TEST_SCHOOL = 'test';   // 공용 연습용 학교 코드 (?school=test). 실제 자료와 완전히 분리된 문서 트리
+const TEST_RE = /^test(-[a-z0-9]{2,12})?$/;   // test(공용) 또는 test-xxxx(개인 연습 방)
 /** 테스트 학교 자료를 전부 지운다 (학년도별 자료, 학교 공통 자료, 학교 문서까지). 테스트 코드에서만 동작 */
 async function testDeleteAll() {
-  if (SID !== TEST_SCHOOL) throw new Error('테스트 학교에서만 쓸 수 있습니다.');
+  if (!TEST_RE.test(SID)) throw new Error('테스트 학교에서만 쓸 수 있습니다.');
   const ops = [];
   const years = (await FS.list(`${schoolPath_()}/years`)).map(y => y.id);
   for (const y of years) {
@@ -1889,13 +1889,13 @@ async function initCore(){
   const params = new URLSearchParams(location.search);
   const code = (params.get('school')||'').trim().toLowerCase() || DEFAULT_SCHOOL;   // 보통은 고정 코드. ?school= 은 나중에 여러 학교를 한곳에서 쓸 때만
   const viewYear = (params.get('year')||'').trim();
-  TEST = (code === TEST_SCHOOL);
+  TEST = TEST_RE.test(code);
   if(!(await API.schoolExists(code))){
-    if(TEST){ $('bootMsg').textContent = '연습용 샘플 자료를 만드는 중입니다… (처음 한 번, 10초쯤)'; await seedTestSchool(); }
+    if(TEST){ $('bootMsg').textContent = '연습용 샘플 자료를 만드는 중입니다… (처음 한 번, 10초쯤)'; await seedTestSchool(code); }
     else { SETUP_CODE = code; showSetupScreen(); return; }
   }
   await API.openSchool(code, viewYear);
-  $('testBanner').style.display = TEST ? 'flex' : 'none';
+  renderTestBanner();
   if($('sc-setup').classList.contains('on')){ $('sideBar').style.display=''; goHome(); }   // 처음 설정 직후 새로고침 없이 이어질 때
   boot = await call('getBootstrap');
   $('hdSchool').textContent = (boot.학교명 ? boot.학교명 + ' ' : '') + '예산 관리';
@@ -3219,9 +3219,47 @@ async function autoEnter(){
 // ───────── 테스트 페이지 (?school=test): 연습용 학교를 샘플 자료와 함께 만든다 ─────────
 let TEST = false;
 function testUrl(){ return location.origin + location.pathname.replace(/[^/]*$/, '') + 'test.html'; }
-async function seedTestSchool(){
+const ROOM_KEY = 'yesan_test_room';
+function myRoom(){ try{ const r = localStorage.getItem(ROOM_KEY)||''; return TEST_RE.test(r) && r!==TEST_SCHOOL ? r : ''; }catch(e){ return ''; } }
+function roomUrl(code){ return location.origin + location.pathname + '?school=' + code; }
+function renderTestBanner(){
+  const el = $('testBanner'); el.style.display = TEST ? 'flex' : 'none'; if(!TEST) return;
+  const pw = '관리자 비밀번호 <b>1234</b> &nbsp;|&nbsp; 예산배정 담당자 <b>김담당 / 1234</b>';
+  const btn = (fn, t) => `<button class="btn small" onclick="${fn}">${t}</button>`;
+  const lnk = (h, t) => `<a class="btn small" href="${h}" style="text-decoration:none">${t}</a>`;
+  const sample = lnk('./' + encodeURIComponent('예시_품의목록.xlsx'), '📄 연습용 품의목록 파일');
+  if(SID === TEST_SCHOOL){
+    const room = myRoom();
+    el.innerHTML = `<span>🧪 <b>공용 테스트 페이지</b>입니다. 마음껏 눌러 보세요. 여기 입력한 내용은 실제 자료와 상관없고, 다른 사람과 함께 쓰는 연습 자료입니다. &nbsp;${pw}</span>
+      <span style="display:flex;gap:8px;flex-wrap:wrap">${btn('resetTestSchool()','샘플 자료로 되돌리기')}${btn('makeTestRoom()','나만의 연습 방 만들기')}${room ? lnk(roomUrl(room), '내 연습 방으로 ('+room+')') : ''}${sample}${lnk('./','실제 프로그램으로')}</span>`;
+  } else {
+    try{ localStorage.setItem(ROOM_KEY, SID); }catch(e){}
+    el.innerHTML = `<span>🧪 <b>내 연습 방</b> (${esc(SID)})입니다. 이 방의 자료는 이 주소로 들어온 사람만 봅니다. 주소를 즐겨찾기 해 두세요. &nbsp;${pw}</span>
+      <span style="display:flex;gap:8px;flex-wrap:wrap">${btn("copyText(roomUrl(SID),'연습 방 주소')",'주소 복사')}${btn('resetTestSchool()','샘플 자료로 되돌리기')}${btn('deleteTestRoom()','이 방 지우기')}${sample}${lnk(roomUrl(TEST_SCHOOL),'공용 테스트 페이지로')}${lnk('./','실제 프로그램으로')}</span>`;
+  }
+}
+async function makeTestRoom(){
+  busy(true);
+  try{
+    let code = '';
+    for(let i=0;i<10;i++){ code = 'test-' + Math.random().toString(36).slice(2,6).replace(/[^a-z0-9]/g,'x').padEnd(4,'x'); if(!(await API.schoolExists(code))) break; }
+    try{ localStorage.setItem(ROOM_KEY, code); }catch(e){}
+    toast('연습 방을 만듭니다. 잠시 후 새 방으로 이동합니다.');
+    setTimeout(()=>{ location.href = roomUrl(code); }, 400);
+  }catch(e){ toast('연습 방을 만들지 못했습니다: ' + (e.message||e), true); }
+  finally{ busy(false); }
+}
+async function deleteTestRoom(){
+  if(!TEST || SID === TEST_SCHOOL) return;
+  if(!confirm(`연습 방 ${SID} 의 자료를 모두 지웁니다. 계속할까요?`)) return;
+  busy(true);
+  try{ await API.testDeleteAll(); sessClear(); memClear(); try{ if(localStorage.getItem(ROOM_KEY)===SID) localStorage.removeItem(ROOM_KEY); }catch(e){} toast('연습 방을 지웠습니다. 공용 테스트 페이지로 이동합니다.'); setTimeout(()=>{ location.href = roomUrl(TEST_SCHOOL); }, 600); }
+  catch(e){ toast('지우기 실패: ' + (e.message||e), true); }
+  finally{ busy(false); }
+}
+async function seedTestSchool(code){
   const A = API, PW = '1234', Y = String(new Date().getFullYear());
-  await A.createSchool(TEST_SCHOOL, '테스트초등학교', PW, Y);
+  await A.createSchool(code || TEST_SCHOOL, '테스트초등학교', PW, Y);
   const CLS = {1:2, 2:2, 3:2, 4:3, 5:2, 6:2};
   const st = {}; Object.keys(CLS).forEach(g => { st['학급수_'+g] = CLS[g]; });
   await A.adminSaveSettings(PW, st);
