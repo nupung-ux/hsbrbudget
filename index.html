@@ -290,7 +290,7 @@
         <li>예산 표에서 쓸 예산 행을 클릭 → <b>새 품의 만들기</b></li>
         <li><b>① 품의서</b>: 왼쪽 양식 칸에서 담당자가 정한 제목 양식을 고르면 제목이 채워집니다. <b>복사</b>를 눌러 에듀파인 제목에 그대로 붙여 넣으세요. (제목을 그대로 써야 나중에 에듀파인 집행액이 자동으로 맞춰집니다)</li>
         <li>품의 개요: 문구(물품, 업추비 등)를 고르고 용도와 구매처를 넣으면 개요가 만들어집니다. 필요하면 바로 고친 뒤 <b>개요 복사</b>.</li>
-        <li><b>② 품목 입력</b>: 내용, 수량, 예상단가는 필수이고 합계는 자동입니다. 엑셀에서 복사해 첫 칸에 붙여 넣어도 되고, <b>견적서 파일을 이 칸에 끌어다 놓으면</b>(여러 개 가능) 품목이 바로 들어옵니다. 지마켓, 아이스크림몰, 학교장터, 아람과학사, 이마트몰, YES24 견적서와 에듀파인 품목내역 양식을 읽습니다.</li>
+        <li><b>② 품목 입력</b>: 내용, 수량, 예상단가는 필수이고 합계는 자동입니다. 내용을 쓰고 어느 칸에서든 Enter를 누르면 다음 행이 생깁니다. 엑셀에서 복사해 첫 칸에 붙여 넣어도 되고, <b>견적서 파일을 이 칸에 끌어다 놓으면</b>(여러 개 가능) 품목이 바로 들어옵니다. 지마켓, 아이스크림몰, 학교장터, 아람과학사, 이마트몰, YES24 견적서와 에듀파인 품목내역 양식을 읽습니다.</li>
         <li><b>에듀파인 업로드 양식</b> 버튼으로 xlsx를 내려받아 에듀파인 품의의 품목 업로드에 넣으면 물품이 한 번에 등록됩니다.</li>
         <li>에듀파인에 기안을 올렸으면 <b>기안 완료</b>에 체크하고 <b>저장</b>. 이때부터 사용액과 잔액에 반영됩니다.</li>
       </ol>
@@ -808,7 +808,7 @@
         <!-- ② 품목 입력 -->
         <div class="stepbox dropz" id="iDrop" data-drop="견적서 파일을 여기에 놓으세요">
           <div class="steph"><span class="num">2</span><h3>품목 입력</h3><span class="r">합계는 수량 × 예상단가로 자동 계산 · 엑셀에서 복사해 붙여넣을 수 있습니다</span></div>
-          <div class="hint warn" style="margin:-4px 0 10px">품목을 직접 입력하거나 견적서 파일을 이 칸 어디에나 끌어다 놓아서 추가하실 수 있습니다.</div>
+          <div class="hint warn" style="margin:-4px 0 10px">품목을 직접 입력하거나 견적서 파일을 이 칸 어디에나 끌어다 놓아서 추가하실 수 있습니다. 내용을 쓰고 어느 칸에서든 <b>Enter</b>를 누르면 다음 행이 생깁니다.</div>
           <div id="cpBox" style="display:none"></div>
           <div style="display:flex;justify-content:flex-end;gap:8px;margin-bottom:6px"><button class="btn small" onclick="deleteItems('sel')">선택 삭제</button><button class="btn small" onclick="deleteItems('all')">전체 삭제</button></div>
           <div style="overflow-x:auto"><table class="edit" id="iTable"><thead><tr>
@@ -2476,12 +2476,12 @@ function renderItems(){
     <td><input type="checkbox" ${it._sel?'checked':''} onchange="iDraft[${i}]._sel=this.checked"></td>
     <td class="clsCol" style="${showCls?'':'display:none'}">${it.반?`<span class="cls-tag">${it.반}반</span>`:'<span class="hint" style="margin:0">공통</span>'}</td>
     <td><input type="text" value="${esc(it.내용||'')}" oninput="iDraft[${i}].내용=this.value" onpaste="iPaste(event)" onkeydown="iEnter(event,${i})"></td>
-    <td><input type="text" value="${esc(it.규격||'')}" oninput="iDraft[${i}].규격=this.value" onpaste="iPaste(event)"></td>
-    <td><input type="text" value="${esc(it.단위||'')}" placeholder="개" oninput="iDraft[${i}].단위=this.value" onpaste="iPaste(event)"></td>
-    <td class="num"><input type="text" inputmode="numeric" value="${it.수량||''}" oninput="iDraft[${i}].수량=Number(this.value.replace(/[^0-9.]/g,''))||0;iTotal()" onpaste="iPaste(event)"></td>
-    <td class="num"><input type="text" inputmode="numeric" value="${it.예상단가?won(it.예상단가):''}" oninput="iDraft[${i}].예상단가=Number(this.value.replace(/[^0-9]/g,''))||0;iTotal()" onblur="this.value=this.value?won(this.value.replace(/[^0-9]/g,'')):''" onpaste="iPaste(event)"></td>
+    <td><input type="text" value="${esc(it.규격||'')}" oninput="iDraft[${i}].규격=this.value" onpaste="iPaste(event)" onkeydown="iEnter(event,${i})"></td>
+    <td><input type="text" value="${esc(it.단위||'')}" placeholder="개" oninput="iDraft[${i}].단위=this.value" onpaste="iPaste(event)" onkeydown="iEnter(event,${i})"></td>
+    <td class="num"><input type="text" inputmode="numeric" value="${it.수량||''}" oninput="iDraft[${i}].수량=Number(this.value.replace(/[^0-9.]/g,''))||0;iTotal()" onpaste="iPaste(event)" onkeydown="iEnter(event,${i})"></td>
+    <td class="num"><input type="text" inputmode="numeric" value="${it.예상단가?won(it.예상단가):''}" oninput="iDraft[${i}].예상단가=Number(this.value.replace(/[^0-9]/g,''))||0;iTotal()" onblur="this.value=this.value?won(this.value.replace(/[^0-9]/g,'')):''" onpaste="iPaste(event)" onkeydown="iEnter(event,${i})"></td>
     <td class="num amt" id="iSum${i}">${won((it.수량||0)*(it.예상단가||0))}</td>
-    <td><input type="text" value="${esc(it.구매처||'')}" oninput="iDraft[${i}].구매처=this.value" onpaste="iPaste(event)"></td>
+    <td><input type="text" value="${esc(it.구매처||'')}" oninput="iDraft[${i}].구매처=this.value" onpaste="iPaste(event)" onkeydown="iEnter(event,${i})"></td>
     <td style="white-space:nowrap;text-align:center"><button class="btn text" style="padding:2px 4px;${it.링크?'':'opacity:.35'}" title="${it.링크?esc(it.링크)+' — 클릭해서 수정':'상품 링크 넣기'}" onclick="editLink(${i})">🔗</button>${it.링크?`<a href="${esc(it.링크)}" target="_blank" title="새 창에서 열기" style="font-size:12px">열기</a>`:''}</td>
     <td><button class="btn text danger" onclick="iDraft.splice(${i},1);renderItems()">×</button></td></tr>`).join('');
   iTotal();
@@ -2494,12 +2494,13 @@ function deleteItems(mode){
   else { const n=iDraft.filter(it=>it._sel).length; if(!n) return toast('삭제할 품목을 체크하세요', true); iDraft=iDraft.filter(it=>!it._sel); if(!iDraft.length) iDraft.push({반:cls}); }
   renderItems(); if(iMode!=='class' && $('gPhrase')._list) genBody();
 }
-// 내용 칸에서 Enter: 마지막 행이면 새 행 추가, 아니면 다음 행 내용 칸으로
+// 어느 칸에서든 Enter: 마지막 행이면 새 행 추가, 아니면 다음 행 내용 칸으로 (내용이 비어 있으면 내용 칸으로)
 function iEnter(e,i){
-  if(e.key!=='Enter') return; e.preventDefault();
-  if(!iDraft[i].내용) return;
+  if(e.key!=='Enter' || e.isComposing) return; e.preventDefault();
+  const rows=$('iTable').querySelectorAll('tbody tr');
+  if(!String(iDraft[i].내용||'').trim()){ rows[i]?.querySelector('input[type=text]')?.focus(); toast('내용을 먼저 입력하세요'); return; }
   if(i===iDraft.length-1) addItemRow();
-  else { const rows=$('iTable').querySelectorAll('tbody tr'); rows[i+1]?.querySelector('input[type=text]')?.focus(); }
+  else rows[i+1]?.querySelector('input[type=text]')?.focus();
 }
 async function editLink(i){
   const v = await modal('상품 링크', [{id:'url', label:'주소 (https://…)', value: iDraft[i].링크||'', placeholder:'https://'}], '저장');
