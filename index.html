@@ -250,8 +250,8 @@
       <p>학년, 학급, 전담에 배부된 예산이 무엇이고 얼마 남았는지 한눈에 보고, 품의 제목과 개요, 품목 파일을 만들어 에듀파인에 붙여 넣는 프로그램입니다. 로그인은 필요 없고, 안내받은 주소로 접속해 왼쪽에서 역할을 고르면 됩니다.</p>
       <table>
         <tr><th>역할</th><th>누가</th><th>들어가는 방법</th></tr>
-        <tr><td>예산 사용자</td><td>담임, 학년부장, 전담</td><td>학년 또는 전담 이름 선택 → 들어가기</td></tr>
-        <tr><td>예산배정 담당자</td><td>예산을 배부하는 담당 교사</td><td>이름 선택 → 비밀번호 → 들어가기 (처음이면 "담당자 등록하기")</td></tr>
+        <tr><td>예산 사용자</td><td>담임, 학년부장, 전담</td><td>학년 또는 전담 이름을 고르면 바로 들어갑니다</td></tr>
+        <tr><td>예산배정 담당자</td><td>예산을 배부하는 담당 교사</td><td>이름을 고르면 비밀번호를 묻습니다 (처음이면 "담당자 등록하기")</td></tr>
         <tr><td>관리자</td><td>프로그램 관리 교사</td><td>왼쪽 맨 아래 "관리자" → 비밀번호</td></tr>
       </table>
       <p class="tip" id="helpTestLink"></p>
@@ -422,16 +422,14 @@
   <div class="cur" id="sideCur" style="cursor:pointer" title="클릭하면 이 역할 화면으로 돌아갑니다" onclick="resumeRole()">역할을 선택하세요</div>
   <div class="blk">
     <h4>예산 사용자</h4>
-    <select id="selUser"><option value="">학년·전담 선택</option></select>
-    <button class="btn primary" onclick="userGo()">들어가기</button>
+    <select id="selUser" onchange="if(this.value) userGo()"><option value="">학년·전담 선택</option></select>
     <label class="sub" style="display:flex;gap:6px;align-items:center;cursor:pointer"><input type="checkbox" id="remMe" checked> 이 컴퓨터에 내 학급 기억</label>
     <div class="sub" id="remInfo" style="display:none;color:var(--ink-2)"></div>
     <div class="sub" id="userHint"></div>
   </div>
   <div class="blk">
     <h4>예산배정 담당자</h4>
-    <select id="selManager"><option value="">담당자 선택</option></select>
-    <button class="btn primary" onclick="managerGo()">들어가기</button>
+    <select id="selManager" onchange="if(this.value) managerGo()"><option value="">담당자 선택</option></select>
     <div class="sub"><a href="#" onclick="openRegister();return false">처음이라면 담당자 등록하기</a></div>
   </div>
   <div class="blk"><button class="adminlink" onclick="openAdmin()">관리자</button></div>
@@ -1964,8 +1962,9 @@ async function managerGo(){
   if(!id) return toast('담당자를 선택하세요', true);
   const name = $('selManager').selectedOptions[0].textContent;
   const v = await modal(`${name} 비밀번호`, [{id:'pw',label:'비밀번호',type:'password'}], '들어가기');
+  $('selManager').value = '';
   if(!v) return;
-  const m = await call('loginManager', id, v.pw);
+  let m; try{ m = await call('loginManager', id, v.pw); }catch(e){ return; }
   mgr = { id: m.id, 이름: m.이름, pw: v.pw };
   await loadManager();
   go('manager'); sessSave({role:'mgr', id:m.id, pw:v.pw});
@@ -2331,6 +2330,7 @@ async function userGo(){
   const v = $('selUser').value;
   if(!v) return toast('학년 또는 전담을 선택하세요', true);
   const label = $('selUser').selectedOptions[0].textContent;
+  $('selUser').value = '';
   const isGrade = v[0]==='g';
   const pwTarget = isGrade ? v.slice(1).split('-')[0] : '전담';   // 비밀번호 키
   const dataTarget = isGrade ? pwTarget : v.slice(1);              // 배부 대상 값(학년 번호 또는 전담id)
@@ -3208,7 +3208,6 @@ function renderMem(){
   const m = memLoad();
   $('remInfo').style.display = m ? 'block' : 'none';
   if(m){ $('remInfo').innerHTML = `이 컴퓨터는 <b>${esc(memLabel(m))}</b>(으)로 기억되어 접속하면 바로 열립니다. <a href="#" onclick="memForget();return false">지우기</a>`; $('remMe').checked = true; }
-  if(m) $('selUser').value = m.isGrade ? `g${m.target}-0` : `t${m.target}`;
 }
 function memForget(){ memClear(); $('remMe').checked = false; toast('이 컴퓨터의 학급 기억을 지웠습니다'); }
 /** 세션이 없을 때 기억된 학급으로 바로 들어가기 */
