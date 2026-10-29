@@ -1839,7 +1839,6 @@ function go(name){
   $('hdCrumb').innerHTML = '';
   if(name==='role') $('sideCur').textContent='역할을 선택하세요'; else lastScreen=name;
   window.scrollTo(0,0);
-  if(name==='user'||name==='manager'||name==='admin') helpFirst(name);
 }
 function tab(btn){
   const id = btn.dataset.tab;
@@ -3190,14 +3189,6 @@ function helpOpen(t){
 }
 function helpClose(){ $('helpBg').classList.remove('on'); $('helpDrawer').classList.remove('on'); }
 document.addEventListener('keydown', e=>{ if(e.key==='Escape' && $('helpDrawer').classList.contains('on')) helpClose(); });
-/** 역할 화면에 처음 들어갈 때(이 컴퓨터에서 한 번) 그 역할 설명서를 자동으로 연다 */
-function helpFirst(role){
-  let seen = {}; try{ seen = JSON.parse(localStorage.getItem('yesan_help_seen')||'{}'); }catch(e){}
-  if(seen[role]) return;
-  seen[role] = 1; try{ localStorage.setItem('yesan_help_seen', JSON.stringify(seen)); }catch(e){}
-  helpOpen(role==='user' ? 'user' : role);
-}
-
 // ───────── 이 컴퓨터에 내 학급 기억 ─────────
 const MKEY = 'yesan_my_class';
 function memLoad(){ try{ const o = JSON.parse(localStorage.getItem(MKEY)||'null'); return (o && o.school===SID) ? o : null; }catch(e){ return null; } }
