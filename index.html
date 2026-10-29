@@ -332,7 +332,7 @@
         <li><b>학급 균등분배</b>를 켜면 학년 배부액을 반별로 나눠 넣고 나머지를 학년 공통에 둡니다(학년부장이 나중에 고칠 수 있음).</li>
         <li><b>품의 방식</b>: "학년, 전담이 각자 품의"가 기본입니다. "담당자가 취합해 품의"를 고르면 학년과 전담은 물품만 담고, 담당자가 배부 현황의 <b>취합 품의서</b>에서 제목, 개요, 업로드 양식을 만들어 한 번에 기안합니다(기안 완료 체크 시 각 학년 사용액에 반영).</li>
         <li><b>예산 설명</b>은 학년 화면에 그대로 보입니다. 쓰임새, 기한, 주의할 점을 적어 두세요.</li>
-        <li><b>품의 제목</b>에는 {학급} 또는 {학년}을 꼭 넣으세요. 예: "{학급} 교육과정운영비 물품 구입" → "4학년 1반 교육과정운영비 물품 구입". 여러 개 등록하면 학년에서 골라 씁니다. 이 제목이 에듀파인 반영 때 품의를 찾는 기준입니다.</li>
+        <li><b>품의 제목</b>에는 {학년·학급}을 꼭 넣으세요. 학급 품의에서는 "4학년 1반", 학년 공통 품의에서는 "4학년", 전담이면 전담 이름으로 바뀝니다. 예: "{학년·학급} 교육과정운영비 물품 구입" → "4학년 1반 교육과정운영비 물품 구입". 여러 개 등록하면 학년에서 골라 씁니다. 이 제목이 에듀파인 반영 때 품의를 찾는 기준입니다.</li>
         <li><b>품의 개요 문구</b>는 이 예산에서만 쓸 본문 틀입니다. 비워 두면 관리자 기본 문구를 씁니다.</li>
         <li>"이전 배부에서 설명, 제목, 문구 불러오기"로 지난 설정을 다시 쓸 수 있습니다.</li>
       </ul>
@@ -693,7 +693,7 @@
       </div>
 
       <div class="sect"><h3>품의 제목</h3>
-        <div class="hint">여러 개 등록하면 학년에서 골라 씁니다. <code>{학급}</code>은 4학년 1반(공통 품의면 4학년, 전담이면 전담 이름), <code>{학년}</code>은 4학년으로 바뀝니다. 에듀파인 품의 제목 매칭의 기준이 되므로 반드시 하나는 포함해야 합니다.</div>
+        <div class="hint">여러 개 등록하면 학년에서 골라 씁니다. <code>{학년·학급}</code>은 학급 품의에서는 4학년 1반, 학년 공통 품의에서는 4학년, 전담이면 전담 이름으로 바뀝니다. 에듀파인 품의 제목 매칭의 기준이 되므로 반드시 넣어야 합니다.</div>
         <div id="aTitlesBar"></div>
         <div class="tlist" id="aTitles"></div>
         <div style="margin-top:8px"><button class="btn small" onclick="addTitleRow('aTitles')">제목 추가</button></div>
@@ -724,7 +724,7 @@
         <div class="stepbox">
           <div class="steph"><span class="num">1</span><h3>품의서</h3><span class="r">제목을 저장하면 학년·전담 화면에도 같은 제목으로 보입니다. 에듀파인 원인행위액은 이 제목으로 찾아 각 학년에 품목 합계 비율로 나눠 반영됩니다.</span></div>
           <label class="f" style="font-weight:700;font-size:17px;color:var(--ink)">품의 제목 <span style="color:var(--danger)">*</span></label>
-          <div style="display:flex;gap:8px;margin-top:6px"><select id="cgTitleSel" style="width:34%;min-width:220px" title="예산 담당자 제목 양식 — {학년}·{학급}은 배부 대상 전체로 바뀝니다" onchange="cgTitlePick()"></select><input type="text" id="cgTitle" style="flex:1;font-size:16px" placeholder="통합 품의 제목"><button class="btn" onclick="cgSaveTitle()">제목 저장</button><button class="btn soft" onclick="copyText($('cgTitle').value,'제목')">제목 복사</button></div>
+          <div style="display:flex;gap:8px;margin-top:6px"><select id="cgTitleSel" style="width:34%;min-width:220px" title="예산 담당자 제목 양식 — {학년·학급}은 배부 대상 전체로 바뀝니다" onchange="cgTitlePick()"></select><input type="text" id="cgTitle" style="flex:1;font-size:16px" placeholder="통합 품의 제목"><button class="btn" onclick="cgSaveTitle()">제목 저장</button><button class="btn soft" onclick="copyText($('cgTitle').value,'제목')">제목 복사</button></div>
           <label class="f" style="font-weight:700;font-size:17px;color:var(--ink);margin-top:16px">품의 개요</label>
           <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:8px">
             <span><label class="f">품의 개요 문구 선택</label><select id="cgPhrase" style="min-width:180px" onchange="cgGen()"></select></span>
@@ -1015,6 +1015,9 @@ async function school_() { if (!CACHE.__school) { CACHE.__school = await FS.get(
 async function yearDoc_() { if (!CACHE.__year) { CACHE.__year = (await FS.get(yearPath_())) || {}; } return Object.assign({}, DEFAULT_YEAR_SETTINGS, CACHE.__year); }
 /** 학교 설정 + 학년도 설정을 합친 것 (Code.gs의 readSettings_와 같은 모양) */
 async function settings_() { const s = await school_(); if (!s) throw new Error('학교 자료를 찾을 수 없습니다. 화면을 새로고침해 주세요.'); return Object.assign({}, s, await yearDoc_(), { 학년도: YEAR }); }
+/** 제목 자리표시자 {학년·학급}: 학급 품의면 "4학년 1반", 학년 공통이면 "4학년", 전담이면 전담 이름. 옛 {학급} {학년}도 같은 뜻으로 처리 */
+const PH_CLS_RE = /\{학년[·ㆍ•]학급\}|\{학급\}|\{학년\}/g;
+const hasClsPh_ = t => /\{학년[·ㆍ•]학급\}|\{학급\}|\{학년\}/.test(String(t || ''));
 function publicSettings_(s) { const out = {}; Object.keys(s).forEach(k => { if (k !== '솔트' && k !== '관리자비밀번호해시') out[k] = s[k]; }); return out; }
 
 async function hash_(pw) {
@@ -1451,7 +1454,7 @@ async function allocateOps_(id, req) {
   });
   if (already + total > num_(budget.예산액)) throw new Error(`배부 총액(${total.toLocaleString()})이 예산 잔여액(${(num_(budget.예산액) - already).toLocaleString()})을 넘습니다.`);
   const titles = (req.제목목록 || []).map(t => String(t || '').trim()).filter(Boolean);
-  titles.forEach(t => { if (!/\{학급\}|\{학년\}/.test(t)) throw new Error(`제목 '${t}'에 {학급} 또는 {학년}이 없습니다.`); });
+  titles.forEach(t => { if (!hasClsPh_(t)) throw new Error(`제목 '${t}'에 {학년·학급}이 없습니다.`); });
   const phrases = (req.문구목록 || []).filter(p => p && String(p.이름 || '').trim() && String(p.본문템플릿 || '').trim()).map(p => ({ 이름: String(p.이름).trim(), 본문템플릿: String(p.본문템플릿).trim() }));
   const gid = newId_(); const ts = now_(); const collect = !!req.담당자품의;
   const even = req.균등분배 && method !== '인당' && !collect ? 'Y' : 'N';
@@ -1466,7 +1469,7 @@ async function allocateOps_(id, req) {
       설명: String(req.설명 || ''), 균등분배여부: even, 수정일시: ts, 생성순: ts + '.' + pad2_(idx), 담당자품의: collect ? 'Y' : 'N', 학급분배: dist, 제목목록: titles, 문구목록: phrases }));
     if (collect) {
       const tl = targetLabel_(r.대상, depts);
-      const t0 = titles.length ? titles[0].replace(/\{학년\}/g, isGrade ? r.대상 + '학년' : tl).replace(/\{학급\}/g, isGrade ? r.대상 + '학년' : tl).replace(/\{예산명\}/g, budget.산출내역 || '') : '';
+      const t0 = titles.length ? titles[0].replace(PH_CLS_RE, isGrade ? r.대상 + '학년' : tl).replace(/\{예산명\}/g, budget.산출내역 || '') : '';
       ops.push(opSet_('품의', { id: newId_(), 배부id: aid, 대상: r.대상, 반: 0, 차수: 1, 제목: t0, 작성자: '담당자 취합', 상태: '작성중', 원인행위액: 0, 에듀파인품의번호: '', 생성일: ts, 수정일시: ts,
         조정합계: '', 학급담기: 'Y', 반당한도: '', 담기완료: [], 취합그룹: gid, 품목: [] }));
     }
@@ -1482,7 +1485,7 @@ async function managerUpdateGroup(id, pw, gid, patch) {
   const budget = (await col_('예산')).find(b => b.id === mine[0].예산id);
   if (!budget || budget.담당자id !== id) throw new Error('이 배부를 수정할 권한이 없습니다.');
   const titles = (patch.제목목록 || []).map(t => String(t || '').trim()).filter(Boolean);
-  titles.forEach(t => { if (!/\{학급\}|\{학년\}/.test(t)) throw new Error(`제목 '${t}'에 {학급} 또는 {학년}이 없습니다.`); });
+  titles.forEach(t => { if (!hasClsPh_(t)) throw new Error(`제목 '${t}'에 {학년·학급}이 없습니다.`); });
   const phrases = (patch.문구목록 || []).filter(p => p && String(p.이름 || '').trim() && String(p.본문템플릿 || '').trim()).map(p => ({ 이름: String(p.이름).trim(), 본문템플릿: String(p.본문템플릿).trim() }));
   const ops = mine.map(a => opUpd_('배부', a.id, { 설명: String(patch.설명 || ''), 수정일시: now_(), 제목목록: titles, 문구목록: phrases }));
   ops.push(logOp_('담당자', '수정', '배부', budget.산출내역));
@@ -1659,7 +1662,7 @@ async function ourPumui_() {
     const a = allocs.find(x => x.id === p.배부id) || {}; const b = budgets.find(x => x.id === a.예산id) || {};
     const isGrade = /^[1-6]$/.test(String(a.대상)); const tl = targetLabel_(a.대상, depts); const cls = num_(p.반);
     const 학급 = cls ? `${a.대상}학년 ${cls}반` : tl;
-    const tmpl = (a.제목목록 || []).map(t => String(t).replace(/\{학년\}/g, isGrade ? `${a.대상}학년` : tl).replace(/\{학급\}/g, 학급).replace(/\{예산명\}/g, b.산출내역 || ''));
+    const tmpl = (a.제목목록 || []).map(t => String(t).replace(PH_CLS_RE, 학급).replace(/\{예산명\}/g, b.산출내역 || ''));
     if (p.취합그룹) {
       const g = seenGroup[p.취합그룹];
       if (g) { g.대상들.push(tl); g.n템플릿 = g.n템플릿.concat(tmpl.map(norm_)); return; }
@@ -2153,8 +2156,7 @@ function aRecalc(){
 }
 // ───────── 자리표시자 삽입 ─────────
 const PH = [
-  ['{학년}',   '학년 → 예: 4학년'],
-  ['{학급}',   '학년 반 → 예: 4학년 1반. 학년 공통 품의면 4학년, 전담이면 전담 이름'],
+  ['{학년·학급}', '학급 품의면 4학년 1반, 학년 공통 품의면 4학년, 전담이면 전담 이름'],
   ['{예산명}', '배부된 예산 이름(산출내역) → 예: 4학년교육과정운영비'],
   ['{용도}',   '품의서 만들 때 담임이 입력하는 용도 → 예: 독서교육'],
   ['{구매처}', '품의서 만들 때 고르는 구매처 → 예: 지마켓'],
@@ -2165,7 +2167,8 @@ const PH = [
   ['{단가}',   '첫 품목의 예상단가 → 예: 5,000'],
   ['{인원}',   '첫 품목의 수량 → 예: 12'],
 ];
-const PH_TITLE = ['{학년}','{학급}','{예산명}','{용도}','{구매처}'];
+const PH_TITLE = ['{학년·학급}','{예산명}','{용도}','{구매처}'];
+const PH_CLS_UI = /\{학년[·ㆍ•]학급\}|\{학급\}|\{학년\}/g;
 let lastField = null;   // 마지막으로 커서가 있던 입력칸
 document.addEventListener('focusin', e=>{ if(e.target.matches('input[type=text],textarea')) lastField=e.target; });
 function phBar(boxId, titleOnly){
@@ -2180,10 +2183,10 @@ function insertPh(boxId, text){
   f.setRangeText(text, st, en, 'end'); f.focus();
   f.dispatchEvent(new Event('input',{bubbles:true}));
 }
-function titlePreview(t){ return t.replace(/\{학급\}/g,'4학년 1반').replace(/\{학년\}/g,'4학년'); }
+function titlePreview(t){ return t.replace(PH_CLS_UI,'4학년 1반'); }
 function addTitleRow(boxId, val){
   const box=$(boxId); const d=document.createElement('div');
-  d.innerHTML=`<input type="text" placeholder="예: {학급} 교육과정운영비 물품 구입" value="${esc(val||'')}" oninput="this.nextElementSibling.textContent=titlePreview(this.value)"><span class="pv">${esc(titlePreview(val||''))}</span><button class="btn text danger" onclick="this.parentElement.remove()">×</button>`;
+  d.innerHTML=`<input type="text" placeholder="예: {학년·학급} 교육과정운영비 물품 구입" value="${esc(val||'')}" oninput="this.nextElementSibling.textContent=titlePreview(this.value)"><span class="pv">${esc(titlePreview(val||''))}</span><button class="btn text danger" onclick="this.parentElement.remove()">×</button>`;
   box.appendChild(d);
 }
 function addPhraseRow(boxId, p){
@@ -2229,7 +2232,7 @@ function renderGroups(){
 // ───────── 담당자 취합 품의서 ─────────
 let CG=null;
 function cLabels(g){ return g.대상들.map(t=>t.라벨).join('·'); }
-function cSubst(t,g){ const L=cLabels(g); return t.replace(/\{학년\}/g,L).replace(/\{학급\}/g,L).replace(/\{예산명\}/g,g.예산명); }
+function cSubst(t,g){ const L=cLabels(g); return t.replace(PH_CLS_UI,L).replace(/\{예산명\}/g,g.예산명); }
 function cItems(g){ return g.취합.flatMap(c=>c.품목.map(i=>({...i, 대상:c.라벨}))); }
 function openCollect(gid){
   const g=M.groups.find(x=>x.그룹id===gid); if(!g) return; CG=g;
@@ -2377,7 +2380,7 @@ function renderPumuiPanel(a){
 }
 function subst(t, a){
   const g=U.target; const 학급 = uCls? `${g}학년 ${uCls}반` : (U.isGrade? `${g}학년` : U.label);
-  return t.replace(/\{학년\}/g, U.isGrade?`${g}학년`:U.label).replace(/\{학급\}/g, 학급).replace(/\{예산명\}/g, a.예산명);
+  return t.replace(PH_CLS_UI, 학급).replace(/\{예산명\}/g, a.예산명);
 }
 async function newPumui(){
   if(U.isGrade && uCls===0){ $('cpOn').checked=false; $('cpLimit').value=''; $('cpLimitBox').style.display='none'; $('cpModal').classList.add('on'); return; }
