@@ -1822,7 +1822,8 @@ async function call(fn, ...args){
   finally { busy(false); }
 }
 function downloadJson(obj, name){ const blob=new Blob([JSON.stringify(obj,null,1)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name; document.body.appendChild(a); a.click(); setTimeout(()=>{URL.revokeObjectURL(a.href); a.remove();},500); }
-const DEFAULT_SCHOOL = (typeof SCHOOL_CODE!=='undefined' && SCHOOL_CODE) ? String(SCHOOL_CODE).toLowerCase() : 'school';
+const DEMO = (typeof SITE_MODE!=='undefined' && String(SITE_MODE).toLowerCase()==='demo');   // firebase-config.js 에 SITE_MODE='demo' 면 연수용 사이트 (실제 학교 없이 연습용 학교만)
+const DEFAULT_SCHOOL = DEMO ? 'test' : ((typeof SCHOOL_CODE!=='undefined' && SCHOOL_CODE) ? String(SCHOOL_CODE).toLowerCase() : 'school');
 function shareUrl(){ return location.origin + location.pathname + (SID && SID!==DEFAULT_SCHOOL ? '?school=' + SID : ''); }
 function yearUrl(y){ const u=shareUrl(); return u + (u.indexOf('?')>=0 ? '&' : '?') + 'year=' + y; }
 let lastScreen=null;
@@ -1903,7 +1904,7 @@ async function initCore(){
   boot = await call('getBootstrap');
   $('hdSchool').textContent = (boot.학교명 ? boot.학교명 + ' ' : '') + '예산 관리';
   $('hdLogo').src = boot.학교마크 || ''; $('hdLogo').style.display = boot.학교마크 ? 'block' : 'none';
-  document.title = '예산 관리 프로그램' + (TEST ? ' (테스트)' : '') + (boot.학교명 ? ' - ' + boot.학교명 : '') + (boot.읽기전용 ? ` (${boot.학년도}학년도 읽기 전용)` : '');
+  document.title = '예산 관리 프로그램' + (TEST ? (DEMO ? ' (연수용)' : ' (테스트)') : '') + (boot.학교명 ? ' - ' + boot.학교명 : '') + (boot.읽기전용 ? ` (${boot.학년도}학년도 읽기 전용)` : '');
   $('helpTestLink').innerHTML = TEST ? '지금 보고 있는 화면이 테스트 페이지입니다. 위쪽 "샘플 자료로 되돌리기"를 누르면 처음 상태로 돌아갑니다.' : `연습해 보고 싶으면 <a href="${testUrl()}" target="_blank" rel="noopener">테스트 페이지</a>에서 마음껏 눌러 보세요. 실제 자료와 상관없는 연습용 자료가 들어 있고, 언제든 처음 상태로 되돌릴 수 있습니다.`;
   setFavicon(boot.학교마크);
   $('hdYear').textContent = boot.학년도 ? boot.학년도+'학년도' : '';
@@ -3220,7 +3221,8 @@ async function autoEnter(){
 
 // ───────── 테스트 페이지 (?school=test): 연습용 학교를 샘플 자료와 함께 만든다 ─────────
 let TEST = false;
-function testUrl(){ return location.origin + location.pathname.replace(/[^/]*$/, '') + 'test.html'; }
+function testUrl(){ return DEMO ? location.origin + location.pathname : location.origin + location.pathname.replace(/[^/]*$/, '') + 'test.html'; }
+function sharedTestUrl(){ return DEMO ? location.origin + location.pathname : roomUrl(TEST_SCHOOL); }
 const ROOM_KEY = 'yesan_test_room';
 function myRoom(){ try{ const r = localStorage.getItem(ROOM_KEY)||''; return TEST_RE.test(r) && r!==TEST_SCHOOL ? r : ''; }catch(e){ return ''; } }
 function roomUrl(code){ return location.origin + location.pathname + '?school=' + code; }
@@ -3232,12 +3234,14 @@ function renderTestBanner(){
   const sample = lnk('./' + encodeURIComponent('예시_품의목록.xlsx'), '📄 연습용 품의목록 파일');
   if(SID === TEST_SCHOOL){
     const room = myRoom();
-    el.innerHTML = `<span>🧪 <b>공용 테스트 페이지</b>입니다. 마음껏 눌러 보세요. 여기 입력한 내용은 실제 자료와 상관없고, 다른 사람과 함께 쓰는 연습 자료입니다. &nbsp;${pw}</span>
-      <span style="display:flex;gap:8px;flex-wrap:wrap">${btn('resetTestSchool()','샘플 자료로 되돌리기')}${btn('makeTestRoom()','나만의 연습 방 만들기')}${room ? lnk(roomUrl(room), '내 연습 방으로 ('+room+')') : ''}${sample}${lnk('./','실제 프로그램으로')}</span>`;
+    const head = DEMO ? '🧪 <b>연수용 연습 페이지</b>입니다. 마음껏 눌러 보세요. 여기 입력한 내용은 다른 참가자와 함께 쓰는 연습 자료입니다. 혼자 쓰려면 "나만의 연습 방 만들기"를 누르세요.'
+                      : '🧪 <b>공용 테스트 페이지</b>입니다. 마음껏 눌러 보세요. 여기 입력한 내용은 실제 자료와 상관없고, 다른 사람과 함께 쓰는 연습 자료입니다.';
+    el.innerHTML = `<span>${head} &nbsp;${pw}</span>
+      <span style="display:flex;gap:8px;flex-wrap:wrap">${btn('resetTestSchool()','샘플 자료로 되돌리기')}${btn('makeTestRoom()','나만의 연습 방 만들기')}${room ? lnk(roomUrl(room), '내 연습 방으로 ('+room+')') : ''}${sample}${DEMO ? '' : lnk('./','실제 프로그램으로')}</span>`;
   } else {
     try{ localStorage.setItem(ROOM_KEY, SID); }catch(e){}
     el.innerHTML = `<span>🧪 <b>내 연습 방</b> (${esc(SID)})입니다. 이 방의 자료는 이 주소로 들어온 사람만 봅니다. 주소를 즐겨찾기 해 두세요. &nbsp;${pw}</span>
-      <span style="display:flex;gap:8px;flex-wrap:wrap">${btn("copyText(roomUrl(SID),'연습 방 주소')",'주소 복사')}${btn('resetTestSchool()','샘플 자료로 되돌리기')}${btn('deleteTestRoom()','이 방 지우기')}${sample}${lnk(roomUrl(TEST_SCHOOL),'공용 테스트 페이지로')}${lnk('./','실제 프로그램으로')}</span>`;
+      <span style="display:flex;gap:8px;flex-wrap:wrap">${btn("copyText(roomUrl(SID),'연습 방 주소')",'주소 복사')}${btn('resetTestSchool()','샘플 자료로 되돌리기')}${btn('deleteTestRoom()','이 방 지우기')}${sample}${lnk(sharedTestUrl(), DEMO ? '공용 연습 페이지로' : '공용 테스트 페이지로')}${DEMO ? '' : lnk('./','실제 프로그램으로')}</span>`;
   }
 }
 async function makeTestRoom(){
@@ -3255,7 +3259,7 @@ async function deleteTestRoom(){
   if(!TEST || SID === TEST_SCHOOL) return;
   if(!confirm(`연습 방 ${SID} 의 자료를 모두 지웁니다. 계속할까요?`)) return;
   busy(true);
-  try{ await API.testDeleteAll(); sessClear(); memClear(); try{ if(localStorage.getItem(ROOM_KEY)===SID) localStorage.removeItem(ROOM_KEY); }catch(e){} toast('연습 방을 지웠습니다. 공용 테스트 페이지로 이동합니다.'); setTimeout(()=>{ location.href = roomUrl(TEST_SCHOOL); }, 600); }
+  try{ await API.testDeleteAll(); sessClear(); memClear(); try{ if(localStorage.getItem(ROOM_KEY)===SID) localStorage.removeItem(ROOM_KEY); }catch(e){} toast('연습 방을 지웠습니다. 공용 페이지로 이동합니다.'); setTimeout(()=>{ location.href = sharedTestUrl(); }, 600); }
   catch(e){ toast('지우기 실패: ' + (e.message||e), true); }
   finally{ busy(false); }
 }
